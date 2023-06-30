@@ -4,87 +4,65 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
+    private ArrayList<User> allUsersList;
+    private User currentUser;
+    private int currentUserPos;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        String msg =getIntent().getStringExtra("Msg");
-        String desc = getIntent().getStringExtra("desc");
+        allUsersList = getIntent().getParcelableArrayListExtra("users");
+        currentUser = getIntent().getParcelableExtra("user");
+        currentUserPos = getIntent().getIntExtra("userpos", -1);
 
-        TextView textView10 = findViewById(R.id.textView10);
-        TextView textView3=findViewById(R.id.textView3);
-        textView10.setText("hello");
-        textView3.setText(desc);
+        TextView textView4 = findViewById(R.id.textView4);
+        TextView textView5 = findViewById(R.id.textView5);
+        textView4.setText(currentUser.getMsg());
+        textView5.setText(currentUser.getDesc());
 
+        Button followButton = findViewById(R.id.button1);
+        followButton.setText(currentUser.isFollowed() ? "Unfollow" : "Follow");
 
-
-       User user = new User("praveen","Male",1,true);
-        Button follow = findViewById(R.id.button1);
-        Button x = findViewById(R.id.button3);
-
-        if (user.followed)
-        {
-            follow.setText("Follow");
-        }
-        else
-        {
-            follow.setText("Unfollow");
-        }
-
-        follow.setOnClickListener(
-
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if (user.followed)
-                        {
-                         user.followed=false;
-                         follow.setText("Unfollow");
-
-                        }
-                        else {
-                            user.followed=true;
-                            follow.setText("Follow");
-                        }
-                        Toast.makeText(getApplicationContext(),"followed", Toast.LENGTH_SHORT).show();
-                    }
-                }
-
-        );
-
-
-
-
-
-            Intent receivingEnd=getIntent();
-            String total =(String) receivingEnd.getStringExtra("number");
-
-
-           // final TextView mTextView=(TextView) findViewById(R.id.textView);
-
-            textView10.setText(total);
-
-
-        x.setOnClickListener(new View.OnClickListener() {
+        followButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                currentUser.setFollowed(!currentUser.isFollowed());
+                followButton.setText(currentUser.isFollowed() ? "Unfollow" : "Follow");
 
-                Intent activityName= new Intent(MainActivity.this,MessageGroup.class);
-                startActivity(activityName);
+                if (currentUserPos != -1) {
+                    allUsersList.set(currentUserPos, currentUser);
+                }
+
+                Intent intent = new Intent();
+                intent.putParcelableArrayListExtra("updatedUserList", allUsersList);
+                setResult(RESULT_OK, intent);
             }
         });
 
-
+        Button x = findViewById(R.id.button3);
+        x.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent activityName = new Intent(MainActivity.this, MessageGroup.class);
+                startActivity(activityName);
+            }
+        });
     }
 
-
+    @Override
+    public void onBackPressed() {
+        Intent intent = new Intent();
+        intent.putParcelableArrayListExtra("updatedUserList", allUsersList);
+        setResult(RESULT_OK, intent);
+        super.onBackPressed();
+    }
 }
